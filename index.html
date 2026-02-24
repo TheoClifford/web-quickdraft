@@ -141,7 +141,7 @@ function genDraft(p,seed){
 }
 
 let cardDb=null,S=null;
-function fresh(q,seed){return{queue:q,step:0,cD:new Map,rD:new Map,cId:null,rId:null,cP:null,rP:null,seed:seed}}
+function fresh(q,seed){return{queue:q,step:0,cD:new Map,rD:new Map,cId:null,rId:null,cP:null,rP:null,seed:seed,picks:[]}}
 function add(d,t,n){d.set(t,(d.get(t)||0)+n)}
 function sz(d){let t=0;for(const v of d.values())t+=v;return t}
 function phase(s){if(s===0)return'Starters';if(s<=7)return'Stage 1 — pick '+s+'/7';if(s===8)return'Identity';return'Stage 2 — pick '+(s-8)+'/4'}
@@ -199,21 +199,24 @@ function deckH(deck){
 function expTxt(side){const d=side==='corp'?S.cD:S.rD,id=side==='corp'?S.cId:S.rId;let t=(id||'Unknown')+'\n';for(const[title,qty]of d)t+=qty+' '+title+'\n';return t.trim()}
 
 window.pk2=function(side,i){if(side==='corp')S.cP=i;else S.rP=i;render()};
-window.confirmStep=function(){
+function applyStep(cIdx,rIdx){
   const st=S.queue[S.step];
   if(st.corp.type==='info')st.corp.auto.forEach(c=>add(S.cD,c.t,c.n));
-  else if(st.corp.type==='pick')add(S.cD,st.corp.choices[S.cP],st.corp.copies);
-  else if(st.corp.type==='id')S.cId=st.corp.choices[S.cP];
+  else if(st.corp.type==='pick')add(S.cD,st.corp.choices[cIdx],st.corp.copies);
+  else if(st.corp.type==='id')S.cId=st.corp.choices[cIdx];
   if(st.runner.type==='info')st.runner.auto.forEach(c=>add(S.rD,c.t,c.n));
-  else if(st.runner.type==='pick')add(S.rD,st.runner.choices[S.rP],st.runner.copies);
-  else if(st.runner.type==='id')S.rId=st.runner.choices[S.rP];
-  S.cP=null;S.rP=null;S.step++;render();window.scrollTo({top:0,behavior:'smooth'})};
-window.startNew=function(){const seed=generateSeed();history.replaceState(null,'','#'+seed);S=fresh(genDraft(buildPools([...cardDb.values()]),seed),seed);render();window.scrollTo({top:0})};
+  else if(st.runner.type==='pick')add(S.rD,st.runner.choices[rIdx],st.runner.copies);
+  else if(st.runner.type==='id')S.rId=st.runner.choices[rIdx];
+  if(st.corp.type!=='info')S.picks.push({c:cIdx,r:rIdx});
+  S.cP=null;S.rP=null;S.step++}
+function updateHash(){const p=S.picks.map(pk=>pk.c.toString(16)+pk.r.toString(16)).join('');history.replaceState(null,'','#'+S.seed+(p?'-'+p:''))}
+window.confirmStep=function(){applyStep(S.cP,S.rP);updateHash();render();window.scrollTo({top:0,behavior:'smooth'})};
+window.startNew=function(){const seed=generateSeed();S=fresh(genDraft(buildPools([...cardDb.values()]),seed),seed);updateHash();render();window.scrollTo({top:0})};
 window.swTab=function(side,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.getElementById('exp').value=expTxt(side)};
 window.cpExp=function(){const ta=document.getElementById('exp');ta.select();navigator.clipboard.writeText(ta.value).catch(()=>document.execCommand('copy'))};
-window.copyLink=function(){const url=location.origin+location.pathname+'#'+S.seed;navigator.clipboard.writeText(url).then(()=>{const b=document.querySelector('.seed button');b.textContent='Copied!';setTimeout(()=>{b.textContent='Copy link'},1500)}).catch(()=>{})};
+window.copyLink=function(){navigator.clipboard.writeText(location.href).then(()=>{const b=document.querySelector('.seed button');b.textContent='Copied!';setTimeout(()=>{b.textContent='Copy link'},1500)}).catch(()=>{})};
 
-async function init(){render();try{const all=await fetchCards();cardDb=new Map;for(const c of all)if(!cardDb.has(c.title))cardDb.set(c.title,c);const urlSeed=location.hash.slice(1);const seed=urlSeed||generateSeed();if(!urlSeed)history.replaceState(null,'','#'+seed);S=fresh(genDraft(buildPools(all),seed),seed);render()}catch(e){console.error(e);rError('Could not load cards from NetrunnerDB. Check your connection.')}}
+async function init(){render();try{const all=await fetchCards();cardDb=new Map;for(const c of all)if(!cardDb.has(c.title))cardDb.set(c.title,c);const h=location.hash.slice(1);const parts=h.split('-');const seed=parts[0]||generateSeed();const picksStr=parts[1]||'';const pools=buildPools(all);S=fresh(genDraft(pools,seed),seed);if(picksStr.length>=2){try{applyStep(null,null);for(let i=0;i+1<picksStr.length;i+=2){applyStep(parseInt(picksStr[i],16),parseInt(picksStr[i+1],16))}}catch(e){S=fresh(genDraft(pools,seed),seed)}}updateHash();render()}catch(e){console.error(e);rError('Could not load cards from NetrunnerDB. Check your connection.')}}
 init();
 </script>
 </body>
