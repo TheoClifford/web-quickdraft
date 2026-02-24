@@ -33,7 +33,7 @@ header .meta{font-size:11px;color:#999}
 .choice{display:flex;align-items:center;gap:8px;padding:4px 8px;border:1px solid transparent;border-radius:2px;cursor:pointer;font-size:12px}
 .choice:hover{background:#f0f4ff;border-color:#c8d4e8}
 .choice.selected{background:#e8eef8;border-color:#a0b4d0}
-.choice.dimmed{opacity:.3;pointer-events:none}
+.choice.dimmed{opacity:.3}
 .choice .name{flex:1;color:#333}
 .choice .type{font-size:10px;color:#aaa;white-space:nowrap}
 .choice .copies{font-size:10px;color:#888;background:#f0f0f0;padding:1px 5px;border-radius:2px;white-space:nowrap}
@@ -200,6 +200,8 @@ function expTxt(side){const d=side==='corp'?S.cD:S.rD,id=side==='corp'?S.cId:S.r
 
 window.pk2=function(side,i){if(side==='corp')S.cP=i;else S.rP=i;render()};
 function applyStep(cIdx,rIdx){
+window.pk2=function(side,i){if(side==='corp')S.cP=S.cP===i?null:i;else S.rP=S.rP===i?null:i;render()};
+window.confirmStep=function(){
   const st=S.queue[S.step];
   if(st.corp.type==='info')st.corp.auto.forEach(c=>add(S.cD,c.t,c.n));
   else if(st.corp.type==='pick')add(S.cD,st.corp.choices[cIdx],st.corp.copies);
