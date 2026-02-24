@@ -11,6 +11,10 @@ body{font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:13p
 header{padding:8px 0 6px;border-bottom:1px solid #ddd;margin-bottom:10px;display:flex;align-items:baseline;justify-content:space-between}
 header h1{font-size:14px;font-weight:600;color:#444}
 header .meta{font-size:11px;color:#999}
+.seed{font-size:11px;color:#999;display:flex;align-items:center;gap:6px}
+.seed code{background:#eee;padding:1px 5px;border-radius:2px;font-family:Consolas,monospace;color:#666;letter-spacing:.5px}
+.seed button{font-size:10px;padding:2px 8px;border:1px solid #ccc;border-radius:2px;background:#fff;color:#888;cursor:pointer;font-family:inherit}
+.seed button:hover{background:#f0f0f0;border-color:#bbb}
 .progress{display:flex;gap:3px;margin-bottom:10px}
 .progress-pip{flex:1;height:3px;background:#e0e0e0;border-radius:1px}
 .progress-pip.done{background:#888}
@@ -91,7 +95,12 @@ const VALID_RUNNER_IDS=["Hayley Kaplan: Universal Scholar","Lat: Ethical Freelan
 const CORP_BAN_LIST=new Set(["Ad Blitz","Aimor","Ancestral Imager","Anson Rose","Aryabhata Tech","Awakening Center","Back Channels","Backroom Machinations","Bad Times","Bamboo Dome","Big Brother","Bioroid Efficiency Research","Bioroid Work Crew","Blacklist","Bloom","Bloodletter","Bloop","Brain-Taping Warehouse","Broadcast Square","Builder","Bullfrog","Burke Bugs","Business As Usual","Cerebral Static","Cell Portal","Chairman Hiro","ChiLo City Grid","CFC Excavation Contract","Chronos Project","Clyde Van Rite","Cold Site Server","Commercialization","Constellation Protocol","Corporate War","Cyberdex Trial","Dedicated Response Team","Dedication Ceremony","Defective Brainchips","Director Haas","Drone Screen","Early Premiere","Encrypted Portals","Enforced Curfew","Executive Retreat","Fast Break","Firmware Updates","Foxfire","Freelancer","Fumiko Yamamori","Fractal Threat Matrix","Freedom of Information","Gemini","Henry Phillips","Hasty Relocation","Helium-3 Deposit","Hellion Alpha Test","Hollywood Renovation","Howler","Hudson 1.0","Hyoubu Research Facility","Illicit Sales","Improved Protein Source","Improved Tracers","Increased Drop Rates","Ireress","Investigator Inez Delgado A","Lakshmi Smartfabrics","Lt. Todachine 2","Lockdown","Macrophage","Mark Yale","MCA Informant","Medical Breakthrough","Megaprix Qualifier","Merlin","Metamorph","Merger","Midnight-3 Arcology","Midori","Minelayer","Mumbad Construction Co.","Net Analytics","Net Police","Net Quarantine","Net Watchlist","New Construction","NEXT Wave 2","Observe and Destroy","Otoroshi","PAD Factory","Paper Trail","Pachinko","Personality Profiles","Primary Transmission Dish","Priority Construction","Product Recall","Project Ares","Project Wotan","Psychographics","Puppet Master","Ravana 1.0","Rebranding Team","Reconstruction Contract","Regulatory Capture","Remote Data Farm","Research Grant","Restoring Face","Rutherford Grid","Sacrifice","Salvage","Salem's Hospitality","Satellite Grid","Sealed Vault","Searchlight","Self-Destruct Chips","Sentinel Defense Program","Shipment from Kaguya","Shoot the Moon","Signal Jamming","Simone Diego","Snatch and Grab","Space Camp","Storgotic Resonator","Student Loans","Subcontract","Success","Sunset","Superior Cyberwalls","Synth DNA Modification","Test Ground","The Board","The News Now Hour","The Twins","Tori Hanzō","Traffic Accident","Trieste Model Bioroids","Trojan","Tyr's Hand","Tyrant","Underway Grid","Underway Renovation","Upayoga","Vulcan Coverup","Victoria Jenkins","Warden Fatuma","Watchdog","Wendigo","Wetwork Refit","Witness Tampering","Woodcutter","Zed 1.0"]);
 const RUNNER_BAN_LIST=new Set(["Blackmail","Calling in Favors","Charm Offensive","Data Breach","Diana's Hunt","Direct Access","Employee Strike","Exploratory Romp","Feint","Government Investigations","Immolation Script","Itinerant Protesters","Leverage","Mass Install","Networking","Office Supplies","Paper Tripping","Populist Rally","Power Nap","Rebirth","Reboot","Spree","Surge","Traffic Jam","Uninstall","Acacia","Archives Interface","BMI Buffer","Bookmark","Capstone","Capybara","Deep Red","Ekomind","Forger","LLDS Processor","MemStrips","Monolith","Mu Safecracker","Muresh Bodysuit","Plascrete Carapace","Public Terminal","Qianju PT","Rabbit Hole","Ramujan-reliant 550 BMI","Recon Drone","Replicator","Security Chip","Titanium Ribs","Unregistered S&W '35","Window","Activist Support","Adjusted Chronotype","Akshara Sareen","Angel Arena","Assimilator","Bazaar","Bio-Modeled Network","Chrome Parlor","Citadel Sanctuary","Cookbook","Crash Space","Debbie \"Downtown\" Moreira","District 99","Donut Taganes","Dr. Lovegood","Fester","Bloo Moose","Rezeki","First Responders","Gene Conditioning Shoppe","Globalsec Security Clearance","Investigative Journalism","Investigator Inez Delgado","Jarogniew Mercs","Keros Mcintyre","Liberated Chela","Motivation","New Angeles City Hall","Off-Campus Apartment","Order of Sol","Paige Piper","Paparazzi","Power Tap","Public Sympathy","Sacrificial Clone","Shadow Team","Starlight Crusade Funding","Synthetic Blood","Tallie Perrault","The Back","Thunder Art Gallery","Underworld Contact","Urban Art Vernissage","Valentina Ferreira Carvalho","Virus Breeding Ground","Wasteland","Whistleblower","Wireless Net Pavilion","Crowbar","Dai V","Shiv","Spike","Au Revoir","Copycat","Disrupter","Flux Capacitor","Heliamphora","Hivemind","Incubator","Ixodidae","LLDS Energy Regulator","Panchatantra","Pawn","Plague","Progenitor","Surveillance Network Key"]);
 
-function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+// Seeded PRNG (mulberry32)
+function mulberry32(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hashSeed(str){let h=0;for(let i=0;i<str.length;i++){h=Math.imul(31,h)+str.charCodeAt(i)|0}return h}
+function generateSeed(){const c='abcdefghijklmnopqrstuvwxyz0123456789';let s='';for(let i=0;i<8;i++)s+=c[Math.floor(Math.random()*c.length)];return s}
+
+function shuffle(a,rng){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function take(a,n){return a.slice(0,n)}
 function uniqTitle(cards,n){const s=new Set,r=[];for(const c of cards){if(!s.has(c.title)&&r.length<n){s.add(c.title);r.push(c)}}return r}
 function isBanned(c,bl){if(bl.has(c.title))return true;for(const b of bl)if(c.title.startsWith(b))return true;return false}
@@ -103,34 +112,36 @@ async function fetchCards(){const r=await fetch('https://netrunnerdb.com/api/2.0
 function buildPools(all){
   const seen=new Set,uniq=[];
   for(const c of all.filter(c=>c.pack_code!=='tdc'&&c.pack_code!=='draft'))if(!seen.has(c.title)){seen.add(c.title);uniq.push(c)}
-  const corp=uniq.filter(c=>c.side_code==='corp'),runner=uniq.filter(c=>c.side_code==='runner');
+  const byTitle=(a,b)=>a.title.localeCompare(b.title);
+  const corp=uniq.filter(c=>c.side_code==='corp').sort(byTitle),runner=uniq.filter(c=>c.side_code==='runner').sort(byTitle);
   const cPool=corp.filter(c=>c.type_code!=='identity'&&c.type_code!=='agenda'&&!isBanned(c,CORP_BAN_LIST));
   const rPool=runner.filter(c=>c.type_code!=='identity'&&!isBanned(c,RUNNER_BAN_LIST));
   const rNP=rPool.filter(c=>!hasSub(c,'fracter')&&!hasSub(c,'decoder')&&!hasSub(c,'killer'));
   return{cPool,cIce:cPool.filter(c=>c.type_code==='ice'),rPool,rNP,fr:rPool.filter(c=>hasSub(c,'fracter')),de:rPool.filter(c=>hasSub(c,'decoder')),ki:rPool.filter(c=>hasSub(c,'killer'))}
 }
 
-function pk(pool,show,copies,tag){return{choices:uniqTitle(shuffle(pool),show).map(c=>c.title),copies,tag}}
-function pkT(titles,show,copies,tag){return{choices:take(shuffle(titles),show),copies,tag}}
+function pk(pool,show,copies,tag,rng){return{choices:uniqTitle(shuffle(pool,rng),show).map(c=>c.title),copies,tag}}
+function pkT(titles,show,copies,tag,rng){return{choices:take(shuffle(titles,rng),show),copies,tag}}
 
-function genDraft(p){
+function genDraft(p,seed){
+  const rng=mulberry32(hashSeed(seed));
   const q=[];
   q.push({corp:{type:'info',prompt:'Auto-included in Corp deck:',auto:[{t:'Hedge Fund',n:3},{t:'Jackson Howard',n:2}]},runner:{type:'info',prompt:'Auto-included in Runner deck:',auto:[{t:'Blueberry!™ Diesel',n:3},{t:'Sure Gamble',n:2},{t:'Crypsis',n:1}]}});
-  const cs=[pkT(VALID_3PT_AGENDAS,5,2,'3pt Agenda'),pkT(VALID_2PT_AGENDAS,5,4,'2pt Agenda'),pk(p.cIce,12,3,'Ice'),pk(p.cPool,9,3,'Card'),pk(p.cPool,9,3,'Card'),pk(p.cPool,9,3,'Card'),pk(p.cPool,9,3,'Card')];
-  const rs=[pk(p.rNP,9,3,'Non-breaker'),pk(p.rPool,10,3,'Any'),pk(p.rNP,9,3,'Non-breaker'),pk(p.rPool,10,3,'Any'),
-    {choices:[...uniqTitle(shuffle(p.fr),4).map(c=>c.title),...uniqTitle(shuffle(p.rNP),3).map(c=>c.title)],copies:2,tag:'Fracter pick'},
-    {choices:[...uniqTitle(shuffle(p.de),4).map(c=>c.title),...uniqTitle(shuffle(p.rNP),3).map(c=>c.title)],copies:2,tag:'Decoder pick'},
-    {choices:[...uniqTitle(shuffle(p.ki),4).map(c=>c.title),...uniqTitle(shuffle(p.rNP),3).map(c=>c.title)],copies:2,tag:'Killer pick'}];
+  const cs=[pkT(VALID_3PT_AGENDAS,5,2,'3pt Agenda',rng),pkT(VALID_2PT_AGENDAS,5,4,'2pt Agenda',rng),pk(p.cIce,12,3,'Ice',rng),pk(p.cPool,9,3,'Card',rng),pk(p.cPool,9,3,'Card',rng),pk(p.cPool,9,3,'Card',rng),pk(p.cPool,9,3,'Card',rng)];
+  const rs=[pk(p.rNP,9,3,'Non-breaker',rng),pk(p.rPool,10,3,'Any',rng),pk(p.rNP,9,3,'Non-breaker',rng),pk(p.rPool,10,3,'Any',rng),
+    {choices:[...uniqTitle(shuffle(p.fr,rng),4).map(c=>c.title),...uniqTitle(shuffle(p.rNP,rng),3).map(c=>c.title)],copies:2,tag:'Fracter pick'},
+    {choices:[...uniqTitle(shuffle(p.de,rng),4).map(c=>c.title),...uniqTitle(shuffle(p.rNP,rng),3).map(c=>c.title)],copies:2,tag:'Decoder pick'},
+    {choices:[...uniqTitle(shuffle(p.ki,rng),4).map(c=>c.title),...uniqTitle(shuffle(p.rNP,rng),3).map(c=>c.title)],copies:2,tag:'Killer pick'}];
   for(let i=0;i<7;i++)q.push({corp:{type:'pick',...cs[i]},runner:{type:'pick',...rs[i]}});
-  q.push({corp:{type:'id',choices:take(shuffle(VALID_CORP_IDS),4),tag:'Identity'},runner:{type:'id',choices:take(shuffle(VALID_RUNNER_IDS),4),tag:'Identity'}});
-  const cs2=[pk(p.cPool,12,2,'Card'),pk(p.cPool,12,2,'Card'),pk(p.cPool,12,2,'Card'),pk(p.cPool,12,2,'Card')];
-  const rs2=[pk(p.rNP,12,2,'Non-breaker'),pk(p.rPool,12,2,'Any'),pk(p.rNP,12,2,'Non-breaker'),pk(p.rPool,12,2,'Any')];
+  q.push({corp:{type:'id',choices:take(shuffle(VALID_CORP_IDS,rng),4),tag:'Identity'},runner:{type:'id',choices:take(shuffle(VALID_RUNNER_IDS,rng),4),tag:'Identity'}});
+  const cs2=[pk(p.cPool,12,2,'Card',rng),pk(p.cPool,12,2,'Card',rng),pk(p.cPool,12,2,'Card',rng),pk(p.cPool,12,2,'Card',rng)];
+  const rs2=[pk(p.rNP,12,2,'Non-breaker',rng),pk(p.rPool,12,2,'Any',rng),pk(p.rNP,12,2,'Non-breaker',rng),pk(p.rPool,12,2,'Any',rng)];
   for(let i=0;i<4;i++)q.push({corp:{type:'pick',...cs2[i]},runner:{type:'pick',...rs2[i]}});
   return q;
 }
 
 let cardDb=null,S=null;
-function fresh(q){return{queue:q,step:0,cD:new Map,rD:new Map,cId:null,rId:null,cP:null,rP:null}}
+function fresh(q,seed){return{queue:q,step:0,cD:new Map,rD:new Map,cId:null,rId:null,cP:null,rP:null,seed:seed}}
 function add(d,t,n){d.set(t,(d.get(t)||0)+n)}
 function sz(d){let t=0;for(const v of d.values())t+=v;return t}
 function phase(s){if(s===0)return'Starters';if(s<=7)return'Stage 1 — pick '+s+'/7';if(s===8)return'Identity';return'Stage 2 — pick '+(s-8)+'/4'}
@@ -143,7 +154,7 @@ function rError(m){app.innerHTML='<header><h1>Quick Draft</h1></header><div clas
 function rDraft(){
   const st=S.queue[S.step],ok=(st.corp.type==='info'||S.cP!==null)&&(st.runner.type==='info'||S.rP!==null);
   const pips=Array.from({length:S.queue.length},(_,i)=>'<div class="progress-pip '+(i<S.step?'done':i===S.step?'active':'')+'"></div>').join('');
-  app.innerHTML=`<header><h1>Quick Draft</h1><span class="meta">Step ${S.step+1}/${S.queue.length}</span></header>
+  app.innerHTML=`<header><h1>Quick Draft</h1><div class="seed">Seed: <code>${S.seed}</code><button onclick="copyLink()">Copy link</button></div><span class="meta">Step ${S.step+1}/${S.queue.length}</span></header>
 <div class="progress">${pips}</div><div class="step-info">${phase(S.step)}</div>
 <div class="panels"><div class="panel"><div class="panel-head"><h2>Corp</h2><span class="count">${sz(S.cD)} cards${S.cId?' · '+S.cId.split(':')[0]:''}</span></div>
 <div class="panel-body">${panelH(st.corp,'corp')}</div>${draftedH(S.cD,S.cId,'corp')}</div>
@@ -169,7 +180,7 @@ function draftedH(deck,id,side){
 window.toggleDrafted=function(side){_draftOpen[side]=!_draftOpen[side];render()};
 
 function rResults(){
-  app.innerHTML=`<header><h1>Quick Draft</h1><span class="meta">Complete</span></header>
+  app.innerHTML=`<header><h1>Quick Draft</h1><div class="seed">Seed: <code>${S.seed}</code><button onclick="copyLink()">Copy link</button></div><span class="meta">Complete</span></header>
 <div class="results-grid"><div class="deck"><div class="deck-head"><h2>Corp</h2><span class="count">${sz(S.cD)} cards · win at 5 pts</span></div>
 <div class="deck-body"><div class="deck-id">${S.cId||'—'}</div>${deckH(S.cD)}</div></div>
 <div class="deck"><div class="deck-head"><h2>Runner</h2><span class="count">${sz(S.rD)} cards · win at 6 pts</span></div>
@@ -197,11 +208,12 @@ window.confirmStep=function(){
   else if(st.runner.type==='pick')add(S.rD,st.runner.choices[S.rP],st.runner.copies);
   else if(st.runner.type==='id')S.rId=st.runner.choices[S.rP];
   S.cP=null;S.rP=null;S.step++;render();window.scrollTo({top:0,behavior:'smooth'})};
-window.startNew=function(){S=fresh(genDraft(buildPools([...cardDb.values()])));render();window.scrollTo({top:0})};
+window.startNew=function(){const seed=generateSeed();history.replaceState(null,'','#'+seed);S=fresh(genDraft(buildPools([...cardDb.values()]),seed),seed);render();window.scrollTo({top:0})};
 window.swTab=function(side,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.getElementById('exp').value=expTxt(side)};
 window.cpExp=function(){const ta=document.getElementById('exp');ta.select();navigator.clipboard.writeText(ta.value).catch(()=>document.execCommand('copy'))};
+window.copyLink=function(){const url=location.origin+location.pathname+'#'+S.seed;navigator.clipboard.writeText(url).then(()=>{const b=document.querySelector('.seed button');b.textContent='Copied!';setTimeout(()=>{b.textContent='Copy link'},1500)}).catch(()=>{})};
 
-async function init(){render();try{const all=await fetchCards();cardDb=new Map;for(const c of all)if(!cardDb.has(c.title))cardDb.set(c.title,c);S=fresh(genDraft(buildPools(all)));render()}catch(e){console.error(e);rError('Could not load cards from NetrunnerDB. Check your connection.')}}
+async function init(){render();try{const all=await fetchCards();cardDb=new Map;for(const c of all)if(!cardDb.has(c.title))cardDb.set(c.title,c);const urlSeed=location.hash.slice(1);const seed=urlSeed||generateSeed();if(!urlSeed)history.replaceState(null,'','#'+seed);S=fresh(genDraft(buildPools(all),seed),seed);render()}catch(e){console.error(e);rError('Could not load cards from NetrunnerDB. Check your connection.')}}
 init();
 </script>
 </body>
